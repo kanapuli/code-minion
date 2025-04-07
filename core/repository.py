@@ -3,6 +3,7 @@ from os.path import isfile, relpath
 from typing import Dict, List, Tuple
 
 import git
+from git.repo import base
 
 
 class Repository:
@@ -78,3 +79,16 @@ class Repository:
         except Exception as e:
             print(f"Error reading file {abs_path}: {e}")
             raise
+
+    def get_diff_content(self, file_path: str, base_revision: str = "HEAD~1") -> str:
+        """Get the diff of a specific file"""
+        if not self._git_repo:
+            raise ValueError("Not a git repository")
+
+        rel_path = os.path.relpath(self.path, file_path)
+
+        try:
+            return self._git_repo.git.diff(base_revision, rel_path)
+        except git.CommandError as e:
+            print(f"Git error getting diff in {rel_path}: {e}")
+            return ""
