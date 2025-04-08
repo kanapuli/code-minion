@@ -1,9 +1,12 @@
+import fnmatch
 import os
 from os.path import isfile, relpath
 from typing import Dict, List, Tuple
 
 import git
 from git.repo import base
+
+from core.models import AnalysisContext
 
 
 class Repository:
@@ -92,3 +95,39 @@ class Repository:
         except git.CommandError as e:
             print(f"Git error getting diff in {rel_path}: {e}")
             return ""
+
+    def find_files(self, context: AnalysisContext) -> List[str]:
+        """Find files to analyse based on context"""
+        if context.target_files:
+            return [
+                f if os.path.isabs(f) else os.path.join(self.path, f)
+                for f in context.target_files
+            ]
+
+        # Get files based on Git diff if base_revision is specified
+        if context.base_revision and self._is_git_repo:
+            return self.get_changed_files(context.base_revision)
+
+        # Otherwise analyse all files
+        all_files = []
+
+        for root, _, files in os.walk(self.path):
+            if ".git" in root.split(os.path.sep):
+                continue
+
+            for file in files:
+                file_path = os.path.join(root, file)
+                rel_path = os.path.relpath(file_path, self.path)
+
+                # Check for ignorable patterns
+                if any(
+                    fnmatch.fnmatch(rel_path, pattern)
+                    for pattern in context.ignore_patterns
+                ):
+                    continue
+
+                all_files.append(file_path)
+
+                if len(all_files) >= context.max_files:
+                    return all_files
+        return all_files
