@@ -6,8 +6,6 @@ An AI-powered code review assistant that runs completely local using Ollama.
 
 Code Minion is a command-line tool that analyzes codebases to find bugs, security issues, and quality problems. It uses local LLMs through Ollama to provide intelligent, context-aware reviews without sending code to external services.
 
-![Code Minion](https://via.placeholder.com/800x400?text=Code+Minion+Diagram)
-
 ## Key Features
 
 - **Fully Local**: All analysis runs on your machine using Ollama - no code leaves your system
